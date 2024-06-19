@@ -35,7 +35,6 @@ import {
   EnterPin,
   EnterPinOnDevice,
 } from '../../../components/Hardware/Hardware';
-import { useThemeVariant } from '../../../hooks/useThemeVariant';
 
 function HardwareSingletonDialogCmp(
   props: any,
@@ -131,18 +130,6 @@ function HardwareSingletonDialogCmp(
     content.current = <EnterPassphraseOnDevice />;
   }
 
-  const shouldEnterPinOnDevice =
-    action === EHardwareUiStateAction.REQUEST_PIN &&
-    !state?.payload?.supportInputPinOnSoftware;
-
-  useEffect(() => {
-    if (shouldEnterPinOnDevice) {
-      void serviceHardwareUI.showEnterPinOnDeviceDialog({
-        connectId,
-      });
-    }
-  }, [connectId, serviceHardware, serviceHardwareUI, shouldEnterPinOnDevice]);
-
   return (
     <DialogContainer
       ref={ref}
@@ -187,6 +174,10 @@ function HardwareUiStateContainerCmp() {
 
   const isToastActionRef = useRef(isToastAction);
   isToastActionRef.current = isToastAction;
+
+  const shouldEnterPinOnDevice =
+    action === EHardwareUiStateAction.REQUEST_PIN &&
+    !state?.payload?.supportInputPinOnSoftware;
 
   const isDialogAction = useMemo(() => {
     if (!action) {
@@ -277,21 +268,27 @@ function HardwareUiStateContainerCmp() {
             },
           });
         } else if (isDialogAction) {
-          dialogRef.current = Dialog.show({
-            dismissOnOverlayPress: false,
-            showFooter: false,
-            dialogContainer: HardwareSingletonDialogRender,
-            async onClose(params) {
-              console.log('HardwareUiStateContainer onDismiss');
-              if (params?.flag !== autoClosedFlag) {
-                await serviceHardwareUI.closeHardwareUiStateDialog({
-                  connectId,
-                  reason: 'HardwareUiStateContainer onClose',
-                  skipDeviceCancel: shouldSkipCancelRef.current,
-                });
-              }
-            },
-          });
+          if (shouldEnterPinOnDevice) {
+            void serviceHardwareUI.showEnterPinOnDeviceDialog({
+              connectId: connectId || '',
+            });
+          } else {
+            dialogRef.current = Dialog.show({
+              dismissOnOverlayPress: false,
+              showFooter: false,
+              dialogContainer: HardwareSingletonDialogRender,
+              async onClose(params) {
+                console.log('HardwareUiStateContainer onDismiss');
+                if (params?.flag !== autoClosedFlag) {
+                  await serviceHardwareUI.closeHardwareUiStateDialog({
+                    connectId,
+                    reason: 'HardwareUiStateContainer onClose',
+                    skipDeviceCancel: shouldSkipCancelRef.current,
+                  });
+                }
+              },
+            });
+          }
         }
       } else {
         await closePrevActions();
@@ -307,6 +304,7 @@ function HardwareUiStateContainerCmp() {
     isToastAction,
     serviceHardware,
     serviceHardwareUI,
+    shouldEnterPinOnDevice,
     shouldShowAction,
   ]);
 
