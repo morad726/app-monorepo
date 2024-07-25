@@ -9,7 +9,14 @@ import {
 import { useIntl } from 'react-intl';
 
 import type { IPageScreenProps } from '@onekeyhq/components';
-import { ListView, Page, Stack, useClipboard } from '@onekeyhq/components';
+import {
+  Icon,
+  ListView,
+  Page,
+  Spinner,
+  Stack,
+  useClipboard,
+} from '@onekeyhq/components';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
 import { ListItem } from '@onekeyhq/kit/src/components/ListItem';
 import { NetworkAvatarBase } from '@onekeyhq/kit/src/components/NetworkAvatar';
@@ -81,15 +88,21 @@ const DeriveTypesAddressItem = ({
       title={item.deriveInfo.label}
       subtitle={subtitle}
       renderAvatar={
-        <NetworkAvatarBase logoURI={network?.logoURI ?? ''} size="$8" />
+        <NetworkAvatarBase logoURI={network?.logoURI ?? ''} size="$10" />
       }
+      onPress={onPress}
+      disabled={loading}
     >
-      <ListItem.IconButton
-        loading={loading}
-        icon={item.account ? 'Copy1Outline' : 'PlusLargeOutline'}
-        size="small"
-        onPress={onPress}
-      />
+      {loading ? (
+        <Stack p="$0.5">
+          <Spinner />
+        </Stack>
+      ) : (
+        <Icon
+          name={item.account ? 'Copy3Outline' : 'PlusLargeOutline'}
+          color="$iconSubdued"
+        />
+      )}
     </ListItem>
   );
 };
@@ -118,6 +131,7 @@ export default function WalletAddressPage({
   IModalWalletAddressParamList,
   EModalWalletAddressRoutes.DeriveTypesAddress
 >) {
+  const intl = useIntl();
   const { indexedAccountId, networkId, walletId } = route.params;
   const { result, run: refreshLocalData } = usePromiseResult(
     () =>
@@ -141,7 +155,9 @@ export default function WalletAddressPage({
   return (
     <DeriveTypesAddressContent.Provider value={context}>
       <Page>
-        <Page.Header title="Derive Types" />
+        <Page.Header
+          title={intl.formatMessage({ id: ETranslations.address_type })}
+        />
         <Page.Body>
           <DeriveTypesAddress items={result?.networkAccounts ?? []} />
         </Page.Body>

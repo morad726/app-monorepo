@@ -32,6 +32,7 @@ import {
 import { AccountSelectorCreateAddressButton } from './AccountSelectorCreateAddressButton';
 
 const AllNetworkAccountSelector = ({ num }: { num: number }) => {
+  const intl = useIntl();
   const { activeAccount } = useActiveAccount({ num });
   const navigation =
     useAppNavigation<IPageNavigationProp<IModalWalletAddressParamList>>();
@@ -55,8 +56,9 @@ const AllNetworkAccountSelector = ({ num }: { num: number }) => {
   }
   return (
     <IconButton
+      title={intl.formatMessage({ id: ETranslations.global_copy_address })}
       variant="tertiary"
-      icon="Copy1Outline"
+      icon="Copy3Outline"
       size="small"
       onPress={onPress}
     />

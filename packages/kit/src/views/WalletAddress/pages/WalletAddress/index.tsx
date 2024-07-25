@@ -13,9 +13,11 @@ import type {
   IPageScreenProps,
 } from '@onekeyhq/components';
 import {
+  Icon,
   Page,
   SearchBar,
   SectionList,
+  Spinner,
   Stack,
   useClipboard,
 } from '@onekeyhq/components';
@@ -56,8 +58,6 @@ type ISectionItem = {
   data: IServerNetwork[];
 };
 
-const CELL_HEIGHT = 48;
-
 const WalletAddressDeriveTypeItem = ({ item }: { item: IServerNetwork }) => {
   const appNavigation =
     useAppNavigation<IPageNavigationProp<IModalWalletAddressParamList>>();
@@ -74,10 +74,11 @@ const WalletAddressDeriveTypeItem = ({ item }: { item: IServerNetwork }) => {
   return (
     <ListItem
       title={item.name}
-      h={CELL_HEIGHT}
       onPress={onPress}
-      renderAvatar={<NetworkAvatarBase logoURI={item.logoURI} size="$8" />}
-    />
+      renderAvatar={<NetworkAvatarBase logoURI={item.logoURI} size="$10" />}
+    >
+      <Icon name="ChevronRightOutline" color="$iconSubdued" />
+    </ListItem>
   );
 };
 
@@ -95,7 +96,9 @@ const WalletAddressListItem = ({ item }: { item: IServerNetwork }) => {
   const account = networkAccountMap[item.id] as INetworkAccount | undefined;
   const subtitle = account
     ? accountUtils.shortenAddress({ address: account.address })
-    : intl.formatMessage({ id: ETranslations.wallet_no_address });
+    : intl.formatMessage({
+        id: ETranslations.copy_address_modal_item_create_address_instruction,
+      });
 
   const onPress = useCallback(async () => {
     if (account) {
@@ -135,15 +138,20 @@ const WalletAddressListItem = ({ item }: { item: IServerNetwork }) => {
     <ListItem
       title={item.name}
       subtitle={subtitle}
-      h={CELL_HEIGHT}
-      renderAvatar={<NetworkAvatarBase logoURI={item.logoURI} size="$8" />}
+      renderAvatar={<NetworkAvatarBase logoURI={item.logoURI} size="$10" />}
+      onPress={onPress}
+      disabled={loading}
     >
-      <ListItem.IconButton
-        loading={loading}
-        icon={account ? 'Copy1Outline' : 'PlusLargeOutline'}
-        size="small"
-        onPress={onPress}
-      />
+      {loading ? (
+        <Stack p="$0.5">
+          <Spinner />
+        </Stack>
+      ) : (
+        <Icon
+          name={account ? 'Copy3Outline' : 'PlusLargeOutline'}
+          color="$iconSubdued"
+        />
+      )}
     </ListItem>
   );
 };
@@ -193,7 +201,6 @@ const WalletAddressContent = ({
       if (item?.section?.title) {
         return <SectionList.SectionHeader title={item?.section?.title} />;
       }
-      return <Stack h="$2" />;
     },
     [],
   );
@@ -207,7 +214,7 @@ const WalletAddressContent = ({
 
   return (
     <Stack flex={1}>
-      <Stack px="$5">
+      <Stack px="$5" pb="$4">
         <SearchBar
           placeholder={intl.formatMessage({
             id: ETranslations.global_search,
@@ -231,17 +238,25 @@ const WalletAddress = ({
 }: {
   networks: IServerNetwork[];
   frequentlyUsedNetworks: IServerNetwork[];
-}) => (
-  <Page>
-    <Page.Header title="Wallet Address" />
-    <Page.Body>
-      <WalletAddressContent
-        networks={networks}
-        frequentlyUsedNetworks={frequentlyUsedNetworks}
+}) => {
+  const intl = useIntl();
+
+  return (
+    <Page>
+      <Page.Header
+        title={intl.formatMessage({
+          id: ETranslations.copy_address_modal_title,
+        })}
       />
-    </Page.Body>
-  </Page>
-);
+      <Page.Body>
+        <WalletAddressContent
+          networks={networks}
+          frequentlyUsedNetworks={frequentlyUsedNetworks}
+        />
+      </Page.Body>
+    </Page>
+  );
+};
 
 export default function WalletAddressPage({
   route,
