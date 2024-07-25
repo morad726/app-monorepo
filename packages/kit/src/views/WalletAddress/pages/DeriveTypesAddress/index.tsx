@@ -16,11 +16,15 @@ import {
   Spinner,
   Stack,
   Toast,
+<<<<<<< HEAD
   useClipboard,
+=======
+>>>>>>> faf3a75fd59fe1cac8f3f9c4c882f895169f2330
 } from '@onekeyhq/components';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
 import { ListItem } from '@onekeyhq/kit/src/components/ListItem';
 import { NetworkAvatarBase } from '@onekeyhq/kit/src/components/NetworkAvatar';
+import { useCopyAccountAddress } from '@onekeyhq/kit/src/hooks/useCopyAccountAddress';
 import { usePromiseResult } from '@onekeyhq/kit/src/hooks/usePromiseResult';
 import type {
   IAccountDeriveInfo,
@@ -54,7 +58,7 @@ const DeriveTypesAddressItem = ({
   item: IDeriveTypesAddressItemType;
 }) => {
   const intl = useIntl();
-  const { copyText } = useClipboard();
+  const copyAccountAddress = useCopyAccountAddress();
   const [loading, setLoading] = useState(false);
   const { network, refreshLocalData, walletId, indexedAccountId } = useContext(
     DeriveTypesAddressContent,
@@ -65,7 +69,15 @@ const DeriveTypesAddressItem = ({
 
   const onPress = useCallback(async () => {
     if (item.account) {
-      copyText(item.account.address);
+      if (!network) {
+        throw new Error('network is empty');
+      }
+      await copyAccountAddress({
+        accountId: item.account.id,
+        networkId: network.id,
+        deriveInfo: item.deriveInfo,
+        deriveType: item.deriveType,
+      });
     } else {
       try {
         setLoading(true);
@@ -88,7 +100,7 @@ const DeriveTypesAddressItem = ({
     }
   }, [
     item,
-    copyText,
+    copyAccountAddress,
     refreshLocalData,
     indexedAccountId,
     network,
@@ -137,14 +149,14 @@ const DeriveTypesAddress = ({
   );
 };
 
-export default function WalletAddressPage({
+export default function DeriveTypesAddressPage({
   route,
 }: IPageScreenProps<
   IModalWalletAddressParamList,
   EModalWalletAddressRoutes.DeriveTypesAddress
 >) {
   const intl = useIntl();
-  const { indexedAccountId, networkId, walletId } = route.params;
+  const { indexedAccountId, networkId, walletId, onUnmounted } = route.params;
   const { result, run: refreshLocalData } = usePromiseResult(
     () =>
       backgroundApiProxy.serviceAccount.getNetworkAccountsInSameIndexedAccountIdWithDeriveTypes(
@@ -166,7 +178,7 @@ export default function WalletAddressPage({
   );
   return (
     <DeriveTypesAddressContent.Provider value={context}>
-      <Page>
+      <Page onUnmounted={onUnmounted}>
         <Page.Header
           title={intl.formatMessage({ id: ETranslations.address_type })}
         />
