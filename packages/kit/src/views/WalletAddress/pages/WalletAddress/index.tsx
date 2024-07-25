@@ -229,6 +229,7 @@ const WalletAddressContent = ({
         />
       </Stack>
       <SectionList
+        pb="$3"
         sections={sections}
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
