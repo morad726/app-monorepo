@@ -15,6 +15,7 @@ import {
   Page,
   Spinner,
   Stack,
+  Toast,
   useClipboard,
 } from '@onekeyhq/components';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
@@ -77,12 +78,23 @@ const DeriveTypesAddressItem = ({
           deriveType: item.deriveType,
           networkId: network.id,
         });
+        Toast.success({
+          title: intl.formatMessage({ id: ETranslations.global_success }),
+        });
         refreshLocalData?.();
       } finally {
         setLoading(false);
       }
     }
-  }, [item, copyText, refreshLocalData, indexedAccountId, network, walletId]);
+  }, [
+    item,
+    copyText,
+    refreshLocalData,
+    indexedAccountId,
+    network,
+    walletId,
+    intl,
+  ]);
   return (
     <ListItem
       title={item.deriveInfo.label}

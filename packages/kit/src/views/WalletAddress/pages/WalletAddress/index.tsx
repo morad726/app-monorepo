@@ -19,6 +19,7 @@ import {
   SectionList,
   Spinner,
   Stack,
+  Toast,
   useClipboard,
 } from '@onekeyhq/components';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
@@ -116,6 +117,9 @@ const WalletAddressListItem = ({ item }: { item: IServerNetwork }) => {
           deriveType,
           networkId: item.id,
         });
+        Toast.success({
+          title: intl.formatMessage({ id: ETranslations.global_success }),
+        });
         refreshLocalData();
       } finally {
         setLoading(false);
@@ -129,6 +133,7 @@ const WalletAddressListItem = ({ item }: { item: IServerNetwork }) => {
     deriveType,
     item.id,
     refreshLocalData,
+    intl,
   ]);
 
   if (item.id === getNetworkIdsMap().btc) {
