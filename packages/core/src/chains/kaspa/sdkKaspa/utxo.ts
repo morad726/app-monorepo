@@ -60,7 +60,7 @@ export async function queryConfirmUTXOs(
 
 export function selectUTXOs(
   confirmUtxos: IKaspaUnspentOutputInfo[],
-  txAmount: number,
+  txAmount: BigNumber,
   prioritys?: { satoshis: boolean },
 ): {
   utxoIds: string[];
@@ -72,7 +72,7 @@ export function selectUTXOs(
 
   const selectedUtxos: IKaspaUnspentOutputInfo[] = [];
   const utxoIds: string[] = [];
-  let totalVal = 0;
+  let totalVal = new BigNumber(0);
   let mass = 0;
 
   for (const info of sortedUtxos) {
@@ -81,14 +81,14 @@ export function selectUTXOs(
     utxoIds.push(utxo.id);
     selectedUtxos.push(info);
     mass += utxo.mass;
-    totalVal += utxo.satoshis;
+    totalVal = totalVal.plus(utxo.satoshis);
     // }
-    if (totalVal >= txAmount) break;
+    if (totalVal.isGreaterThanOrEqualTo(txAmount)) break;
   }
 
   if (totalVal < txAmount)
     throw new InsufficientBalance({
-      message: `Insufficient balance - need: ${txAmount} KAS, available: ${txAmount} KAS`,
+      message: `Insufficient balance - need: ${txAmount.toString()} KAS, available: ${txAmount.toString()} KAS`,
     });
 
   return {

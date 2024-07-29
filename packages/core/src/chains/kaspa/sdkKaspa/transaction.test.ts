@@ -1,5 +1,6 @@
-import { Transaction } from '@kaspa/core-lib';
 import { hexToBytes } from '@noble/hashes/utils';
+import { Transaction } from '@onekeyfe/kaspacore-lib';
+import BigNumber from 'bignumber.js';
 
 import { RestAPIClient } from './clientRestApi';
 import { privateKeyFromOriginPrivateKey } from './privatekey';
@@ -9,7 +10,7 @@ import { UnspentOutput } from './types';
 import { queryConfirmUTXOs, selectUTXOs } from './utxo';
 
 import type { IKaspaUnspentOutputInfo } from './types';
-import type { PublicKey } from '@kaspa/core-lib';
+import type { PublicKey } from '@onekeyfe/kaspacore-lib';
 
 jest.setTimeout(3 * 60 * 1000);
 
@@ -51,7 +52,7 @@ describe('Kaspa transaction Tests', () => {
     let utxos: IKaspaUnspentOutputInfo[] = [];
     try {
       const confirmUTXOs = await queryConfirmUTXOs(client, from);
-      const selectUTXOsRes = selectUTXOs(confirmUTXOs, 100000);
+      const selectUTXOsRes = selectUTXOs(confirmUTXOs, new BigNumber(100000));
       utxos = selectUTXOsRes.utxos;
     } catch (error) {
       // ignore
@@ -128,13 +129,69 @@ describe('Kaspa transaction Tests', () => {
     process.stdout.write(`transaction: ${rawTx}\n`);
   });
 
-  it.skip('kaspa selector UTXO', async () => {
+  it('kaspa transaction UTXO 2', async () => {
+    const utxos = [
+      new UnspentOutput({
+        txid: '6d4bc796e16cb6278ce1dfeb9cb89aabf702f9292d6ddc463131c1cd2faa82d0',
+        address:
+          'kaspa:qpa0mtj40e5uqpq06sf44hluvru5smajraxt4c3nl4km86zt537929zjp27tu',
+        vout: 0,
+        scriptPubKey:
+          '207afdae557e69c0040fd4135adffc60f9486fb21f4cbae233fd6db3e84ba47c55ac',
+        scriptPublicKeyVersion: 0,
+        satoshis: 9111111111111111111111,
+        blockDaaScore: 44431383,
+      }),
+    ];
+
+    const transaction: Transaction = new Transaction()
+      .from(utxos)
+      .to(to, 100000000)
+      .setVersion(0)
+      .fee(2069)
+      .change(from);
+
+    const rawTx = await signTransaction(transaction, {
+      getPublicKey(): PublicKey {
+        return publicKey;
+      },
+      // eslint-disable-next-line @typescript-eslint/require-await
+      async getPrivateKey() {
+        return privateKey;
+      },
+    });
+
+    const inputAmount = transaction.inputs[0].output?.satoshis?.toString();
+    const transferOutAmount = transaction.outputs[0].satoshis?.toString();
+    const change = transaction.outputs[1].satoshis?.toString();
+
+    expect(transferOutAmount).toBe('100000000');
+    const feeCheck = new BigNumber(inputAmount)
+      .minus('3000')
+      .minus(transferOutAmount)
+      .isLessThanOrEqualTo(change);
+
+    expect(feeCheck).toBe(true);
+    // expect(transaction.outputs[1].satoshis?.toString()).toBe(
+    //   '9099999999899998208',
+    // );
+    expect(inputAmount).toBe('9100000000000000000000');
+
+    const submitTransaction = submitTransactionFromString(rawTx);
+
+    process.stdout.write(
+      `transaction json: ${JSON.stringify(submitTransaction)}\n`,
+    );
+    process.stdout.write(`transaction: ${rawTx}\n`);
+  });
+
+  it('kaspa selector UTXO', async () => {
     const confirmUTXOs = await queryConfirmUTXOs(
       client,
       'kaspa:qrkk52m4ddq405jvvfg7acwu6g48zd25dzekger3wftq7uat6xcw6cqq63a78',
     );
 
-    const selectedUTXOs = selectUTXOs(confirmUTXOs, 100000);
+    const selectedUTXOs = selectUTXOs(confirmUTXOs, new BigNumber(100000));
 
     process.stdout.write(`pubkeyInfos: ${JSON.stringify(selectedUTXOs)}\n`);
   });

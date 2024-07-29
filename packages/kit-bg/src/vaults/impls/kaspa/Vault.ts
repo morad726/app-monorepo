@@ -414,7 +414,7 @@ export default class Vault extends VaultBase {
   }) {
     let { utxoIds, utxos, mass } = selectUTXOs(
       confirmUtxos,
-      new BigNumber(amountValue).toNumber(),
+      new BigNumber(amountValue),
       priority,
     );
 
@@ -435,7 +435,7 @@ export default class Vault extends VaultBase {
     ) {
       const newSelectUtxo = selectUTXOs(
         confirmUtxos,
-        new BigNumber(amountValue).plus(mass).plus(DUST_AMOUNT).toNumber(),
+        new BigNumber(amountValue).plus(mass).plus(DUST_AMOUNT),
       );
       utxoIds = newSelectUtxo.utxoIds;
       utxos = newSelectUtxo.utxos;
