@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkweb=self.webpackChunkweb||[]).push([[33042],{233042:(e,t,r)=>{r.r(t),r.d(t,{default:()=>NetworkLogger});r(514041).createContext("light");const index_web=function(){return null};var n=r(825903),u=r(831085);function NetworkLogger(){var e=(0,n.YE)();return(0,u.jsx)(index_web,{theme:e})}}}]);
